@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    <title>TEACHER</title>
+    <head>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/admincss.css')}}"> 
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    
+    <body>
+        <div class="container_fluid">
+            
+                
+                    <form class="form-inline align-items-center" action="/teacher" method="POST">
+                
+                        <input class="border-0" type="date" id="date" name="var1" placeholder="date" required>
+                        
+                        <input class="border-0" type="text" id="class" name="var2" placeholder="Class"  required>
+                       
+                        <input class="border-0" type="text" id="section" name="var3" placeholder="Section" required>
+        
+                        <input class="border-0" type="submit" value="Submit" id="submit_1" >
+        
+                    </form>
+               
+            
+        </div>
+        
+        <div class="container-fluid">
+            {%if flag==1 %}
+            <h1 style="text-align: center; margin:20px;"> Attendance is already recorded</h1>
+            {%else%}
+            {%endif%}
+                <table class="table">
+                    <thead>
+                        {% if flag==0 or flag==1%}
+                        <tr>
+                        <th scope="col">Roll no.</th>
+                        
+                        <th scope="col">Name</th>
+                        
+                        <th scope="col">Guardian's number</th>
+                        <th scope="col">Attendance</th>
+                        <th scope="col">Remarks</th>
+                        </tr>
+                        {%else%}
+                        {%endif%}
+                        {% for info in to_admin_info %}
+                            <tr>
+                                <th scope="row">{{loop.index}}</th>
+                                
+                                <td> {{info[1]}}</td>
+                                
+                                <td> {{info[3]}}</td>
+                                {% if flag==0 %}
+                                <td> <input type="button" class="P" id={{loop.index}} name="toggler" value="P" onclick="changefunc(id)"> </td>
+                                <td> <input type="text"  name="remarks " style="border-radius: 5px;"></td>
+                                {%endif%}
+                                {% if flag==1 %}
+                                {% set s=loop.index-1 %}
+                                <td> <input type="button" id={{loop.index}} name="toggler"  onclick="changefunc(id)" class={{stored_attend[s][0]}} value={{stored_attend[s][0]}}> </td>
+                                <td> <input type="text"  name="remarks " style="border-radius: 5px;"></td>
+                                {%endif%}
+
+                            </tr>
+                            
+                        {% endfor %}
+                        
+                    </thead>
+                </table>
+
+                {% if flag==0 or flag==1%}
+                    <button id="cancel" onclick=location.reload()>Cancel</button>
+                    <button id="submit_attd" onclick="post_func()">{{action}}</button>
+               {%else%}
+               {%endif%}
+
+                
+            
+        </div>
+
+
+        <script>
+            function changefunc(id)
+            {
+                document.getElementById(id).addEventListener("click",ffunction(id));
+                function ffunction(id)
+                {
+                    var x=document.getElementById(id);
+                    if(x.value=='P')
+                    {
+                        x.className='';
+                        x.value='A';
+                        x.classList.add('A');
+                    }
+                    else if(x.value=='A')
+                    {
+                        x.className='';
+                        x.value='L';
+                        x.classList.add('L');
+                    }
+                    else if(x.value=='L')
+                    {
+                        x.className='';
+                        x.value='P';
+                        x.classList.add('P');
+                    }
+                }
+                
+            }
+            
+            
+            
+        </script>
+
+    </body>
+    <script>
+        
+        function post_func()
+        {
+            var list= new Array();
+            let mjson;
+            var i=1;
+            
+            while(i<6)
+            {
+                mjson=document.getElementById(i).value;
+                let l1=[];
+                console.log();
+                l1.push(mjson);
+                list.push(l1);
+                i=i+1;
+                
+            }
+            var j=0;
+            {%for items in to_admin_info%}
+                list[j].push({{items[0]}});
+                j=j+1;
+            {%endfor%}
+            
+
+            var x=document.getElementById('submit_attd');
+            if(x.innerHTML=='Submit Attendance')
+            {
+                x.innerHTML="Update Attendance";
+                $.ajax({
+                url: "/post_attend",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                data: JSON.stringify({html_data: list}),
+                
+            });
+            }
+
+            else if(x.innerHTML=='Update Attendance')
+            {
+                alert("Do you really want to Update?")
+                $.ajax({
+                url: "/update_attend",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                data: JSON.stringify({html_data: list}),
+                
+            });
+            }
+            
+        }
+
+
+        
+    </script>
+    
+    
+</html>
